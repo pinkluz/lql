@@ -9,14 +9,6 @@ import (
 
 //go:generate go run golang.org/x/tools/cmd/goyacc -l -o parser.go parser.y
 
-type queryOperator int
-
-const (
-	nop queryOperator = iota
-	andQuery
-	orQuery
-)
-
 var debugGrammer bool
 
 func logDebugGrammar(msg interface{}) {
