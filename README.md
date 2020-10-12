@@ -5,7 +5,7 @@
 <br/>
 
 Lily Query Language (LQL) for short is used to build a bleve search result. It's
-somewhat modled after the Solr query language but is currently much more simple.
+somewhat modeled after the Solr query language but is currently much more simple.
 In addition to building a query the language also lets you limit the result set.
 
 ### Examples
