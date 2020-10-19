@@ -1,52 +1,41 @@
 package lql
 
 import (
+	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"sort"
 	"testing"
 
-	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/index/scorch"
+	"github.com/blugelabs/bluge"
 )
 
-func populateBleve(num int) (bleve.Index, string, error) {
-	var index bleve.Index
-	imap := bleve.NewIndexMapping()
-
-	dir, err := ioutil.TempDir(os.TempDir(), "bleve")
+func populateBleve(num int) (*bluge.Writer, error) {
+	config := bluge.InMemoryOnlyConfig()
+	index, err := bluge.OpenWriter(config)
 	if err != nil {
-		return index, "", err
-	}
-
-	index, err = bleve.NewUsing(dir, imap, scorch.Name, scorch.Name, nil)
-	if err != nil {
-		return index, "", err
+		return nil, err
 	}
 
 	// REMINDER: bleve lowercases everything when you are performing a search
 	for i := 1; i <= num; i++ {
-		index.Index(fmt.Sprintf("u%d", i),
-			map[string]interface{}{
-				"name":  fmt.Sprintf("u%d", i),
-				"test":  "test",
-				"extra": fmt.Sprintf("u%d", i),
-				"range": i,
-			})
+		doc := bluge.NewDocument(fmt.Sprintf("u%d", i))
+		doc.AddField(bluge.NewTextField("name", fmt.Sprintf("u%d", i)).StoreValue())
+		doc.AddField(bluge.NewTextField("test", "test").StoreValue())
+		doc.AddField(bluge.NewTextField("extra", fmt.Sprintf("u%d", i)).StoreValue())
+		doc.AddField(bluge.NewNumericField("range", float64(i)).StoreValue())
+
+		index.Insert(doc)
 	}
 
-	return index, dir, nil
+	return index, nil
 }
 
 func TestQueryResults(t *testing.T) {
-	index, dir, err := populateBleve(5)
+	index, err := populateBleve(5)
 	if err != nil {
 		t.Errorf("failed to populate test index: %s", err)
 		return
 	}
-
-	defer os.RemoveAll(dir)
 
 	tests := []struct {
 		input       []byte
@@ -297,7 +286,7 @@ func TestQueryResults(t *testing.T) {
 
 	for _, test := range tests {
 		// fmt.Println("testing:", string(test.input))
-		actual, err := Parse(test.input)
+		query, fields, err := Parse(test.input)
 		if err == nil && test.shouldError {
 			t.Errorf("Should have got an error for '%s' but did not", string(test.input))
 			continue
@@ -311,20 +300,23 @@ func TestQueryResults(t *testing.T) {
 			continue
 		}
 
-		searchResults, err := index.Search(actual)
+		reader, _ := index.Reader()
+		req := bluge.NewAllMatches(query)
+
+		searchResults, err := reader.Search(context.Background(), req)
 		if err != nil {
 			t.Errorf("failed to get results for query '%s': %s", string(test.input), err)
 		}
 
 		if len(test.fields) > 0 {
-			if len(test.fields) != len(actual.Fields) {
+			if len(test.fields) != len(fields) {
 				t.Errorf("%d fields found for query '%s' but was expecting %d",
-					len(actual.Fields), string(test.input), len(test.fields))
+					len(fields), string(test.input), len(test.fields))
 			} else {
 				sort.Strings(test.fields)
-				sort.Strings(actual.Fields)
+				sort.Strings(fields)
 
-				for i, v := range actual.Fields {
+				for i, v := range fields {
 					if v != test.fields[i] {
 						t.Errorf("Looking for field '%s' in search query but got '%s' for query '%s'",
 							test.fields[i], v, string(test.input))
@@ -334,9 +326,20 @@ func TestQueryResults(t *testing.T) {
 			}
 		}
 
+		// Pull all the doc names out so we can match against them
 		docsFound := []string{}
-		for _, hit := range searchResults.Hits {
-			docsFound = append(docsFound, hit.ID)
+		for {
+			doc, err := searchResults.Next()
+			if err != nil || doc == nil {
+				break
+			}
+
+			doc.VisitStoredFields(func(field string, value []byte) bool {
+				if field == "name" {
+					docsFound = append(docsFound, string(value))
+				}
+				return true
+			})
 		}
 
 		if len(docsFound) != len(test.documents) {

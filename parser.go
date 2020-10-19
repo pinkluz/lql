@@ -5,8 +5,9 @@ import __yyfmt__ "fmt"
 
 import (
 	"fmt"
+	"math"
 
-	bsq "github.com/blevesearch/bleve/search/query"
+	bsq "github.com/blugelabs/bluge"
 )
 
 //go:generate go run golang.org/x/tools/cmd/goyacc -l -o parser.go parser.y
@@ -527,8 +528,10 @@ yydefault:
 			queryOne := yyDollar[1].query
 			queryTwo := yyDollar[3].query
 
-			query := bsq.NewDisjunctionQuery([]bsq.Query{
-				queryOne, queryTwo})
+			query := bsq.NewBooleanQuery()
+			query.AddShould(queryOne)
+			query.AddShould(queryTwo)
+
 			yyVAL.query = query
 		}
 	case 8:
@@ -538,8 +541,10 @@ yydefault:
 			queryOne := yyDollar[1].query
 			queryTwo := yyDollar[3].query
 
-			query := bsq.NewConjunctionQuery([]bsq.Query{
-				queryOne, queryTwo})
+			query := bsq.NewBooleanQuery()
+			query.AddMust(queryOne)
+			query.AddMust(queryTwo)
+
 			yyVAL.query = query
 		}
 	case 9:
@@ -548,7 +553,7 @@ yydefault:
 			logDebugGrammar("tLBRACKET searchParts tRBRACKET")
 			queryPar := yyDollar[2].query
 
-			query := bsq.NewBooleanQuery([]bsq.Query{}, []bsq.Query{}, []bsq.Query{})
+			query := bsq.NewBooleanQuery()
 			query.AddMust(queryPar)
 
 			yyVAL.query = query
@@ -574,9 +579,9 @@ yydefault:
 			key := yyDollar[1].str
 			value := yyDollar[4].str
 
-			match := bsq.NewMatchPhraseQuery(value)
+			match := bsq.NewMatchQuery(value)
 			match.SetField(key)
-			query := bsq.NewBooleanQuery([]bsq.Query{}, []bsq.Query{}, []bsq.Query{})
+			query := bsq.NewBooleanQuery()
 			query.AddMustNot(match)
 
 			yyVAL.query = query
@@ -607,8 +612,8 @@ yydefault:
 
 			fval := yylex.(*lex).strToFloat64(value)
 
-			query := bsq.NewNumericRangeInclusiveQuery(&fval, nil,
-				&setInclusiveRangeQuery, &setInclusiveRangeQuery)
+			query := bsq.NewNumericRangeInclusiveQuery(fval, math.MaxFloat64,
+				setInclusiveRangeQuery, setInclusiveRangeQuery)
 			query.SetField(key)
 
 			yyVAL.query = query
@@ -624,8 +629,8 @@ yydefault:
 
 			fval := yylex.(*lex).strToFloat64(value)
 
-			query := bsq.NewNumericRangeInclusiveQuery(nil, &fval,
-				&setInclusiveRangeQuery, &setInclusiveRangeQuery)
+			query := bsq.NewNumericRangeInclusiveQuery(0.0, fval,
+				setInclusiveRangeQuery, setInclusiveRangeQuery)
 			query.SetField(key)
 
 			yyVAL.query = query
@@ -641,8 +646,8 @@ yydefault:
 
 			fval := yylex.(*lex).strToFloat64(value)
 
-			query := bsq.NewNumericRangeInclusiveQuery(&fval, nil,
-				&setInclusiveRangeQuery, &setInclusiveRangeQuery)
+			query := bsq.NewNumericRangeInclusiveQuery(fval, math.MaxFloat64,
+				setInclusiveRangeQuery, setInclusiveRangeQuery)
 			query.SetField(key)
 
 			yyVAL.query = query
@@ -658,8 +663,8 @@ yydefault:
 
 			fval := yylex.(*lex).strToFloat64(value)
 
-			query := bsq.NewNumericRangeInclusiveQuery(nil, &fval,
-				&setInclusiveRangeQuery, &setInclusiveRangeQuery)
+			query := bsq.NewNumericRangeInclusiveQuery(0.0, fval,
+				setInclusiveRangeQuery, setInclusiveRangeQuery)
 			query.SetField(key)
 
 			yyVAL.query = query
@@ -687,7 +692,7 @@ yydefault:
 
 			match := bsq.NewRegexpQuery(value)
 			match.SetField(key)
-			query := bsq.NewBooleanQuery([]bsq.Query{}, []bsq.Query{}, []bsq.Query{})
+			query := bsq.NewBooleanQuery()
 			query.AddMustNot(match)
 
 			yyVAL.query = query

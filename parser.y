@@ -3,8 +3,9 @@ package lql
 
 import (
 	"fmt"
+	"math"
 
-	bsq "github.com/blevesearch/bleve/search/query"
+	bsq "github.com/blugelabs/bluge"
 )
 
 //go:generate go run golang.org/x/tools/cmd/goyacc -l -o parser.go parser.y
@@ -103,8 +104,10 @@ searchParts tOR searchParts {
 	queryOne := $1
 	queryTwo := $3
 
-	query := bsq.NewDisjunctionQuery([]bsq.Query{
-		queryOne, queryTwo})
+	query := bsq.NewBooleanQuery()
+	query.AddShould(queryOne)
+	query.AddShould(queryTwo)
+
 	$$ = query
 }
 |
@@ -113,8 +116,10 @@ searchParts tAND searchParts {
 	queryOne := $1
 	queryTwo := $3
 
-	query := bsq.NewConjunctionQuery([]bsq.Query{
-		queryOne, queryTwo})
+	query := bsq.NewBooleanQuery()
+	query.AddMust(queryOne)
+	query.AddMust(queryTwo)
+
 	$$ = query
 }
 |
@@ -122,7 +127,7 @@ tLBRACKET searchParts tRBRACKET {
 	logDebugGrammar("tLBRACKET searchParts tRBRACKET")
 	queryPar := $2
 
-	query := bsq.NewBooleanQuery([]bsq.Query{}, []bsq.Query{}, []bsq.Query{})
+	query := bsq.NewBooleanQuery()
 	query.AddMust(queryPar)
 
 	$$ = query
@@ -147,9 +152,9 @@ tSTRING tEXCLAMATION tEQUAL tSTRING {
 	key := $1
 	value := $4
 
-	match := bsq.NewMatchPhraseQuery(value)
+	match := bsq.NewMatchQuery(value)
 	match.SetField(key)
-	query := bsq.NewBooleanQuery([]bsq.Query{}, []bsq.Query{}, []bsq.Query{})
+	query := bsq.NewBooleanQuery()
 	query.AddMustNot(match)
 
 	$$ = query
@@ -178,8 +183,8 @@ tSTRING tGREATERTHAN tSTRING {
 
 	fval := yylex.(*lex).strToFloat64(value)
 
-	query := bsq.NewNumericRangeInclusiveQuery(&fval, nil,
-		&setInclusiveRangeQuery, &setInclusiveRangeQuery)
+	query := bsq.NewNumericRangeInclusiveQuery(fval, math.MaxFloat64,
+		setInclusiveRangeQuery, setInclusiveRangeQuery)
 	query.SetField(key)
 
 	$$ = query
@@ -194,8 +199,8 @@ tSTRING tLESSTHAN tSTRING {
 
 	fval := yylex.(*lex).strToFloat64(value)
 
-	query := bsq.NewNumericRangeInclusiveQuery(nil, &fval,
-		&setInclusiveRangeQuery, &setInclusiveRangeQuery)
+	query := bsq.NewNumericRangeInclusiveQuery(0.0, fval,
+		setInclusiveRangeQuery, setInclusiveRangeQuery)
 	query.SetField(key)
 
 	$$ = query
@@ -210,8 +215,8 @@ tSTRING tGREATERTHAN tEQUAL tSTRING {
 
 	fval := yylex.(*lex).strToFloat64(value)
 
-	query := bsq.NewNumericRangeInclusiveQuery(&fval, nil,
-		&setInclusiveRangeQuery, &setInclusiveRangeQuery)
+	query := bsq.NewNumericRangeInclusiveQuery(fval, math.MaxFloat64,
+		setInclusiveRangeQuery, setInclusiveRangeQuery)
 	query.SetField(key)
 
 	$$ = query
@@ -226,8 +231,8 @@ tSTRING tLESSTHAN tEQUAL tSTRING {
 
 	fval := yylex.(*lex).strToFloat64(value)
 
-	query := bsq.NewNumericRangeInclusiveQuery(nil, &fval,
-		&setInclusiveRangeQuery, &setInclusiveRangeQuery)
+	query := bsq.NewNumericRangeInclusiveQuery(0.0, fval,
+		setInclusiveRangeQuery, setInclusiveRangeQuery)
 	query.SetField(key)
 
 	$$ = query
@@ -253,7 +258,7 @@ tSTRING tEXCLAMATION tTILDE tSTRING {
 
 	match := bsq.NewRegexpQuery(value)
 	match.SetField(key)
-	query := bsq.NewBooleanQuery([]bsq.Query{}, []bsq.Query{}, []bsq.Query{})
+	query := bsq.NewBooleanQuery()
 	query.AddMustNot(match)
 
 	$$ = query

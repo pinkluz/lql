@@ -7,8 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/blevesearch/bleve"
-	bsq "github.com/blevesearch/bleve/search/query"
+	bsq "github.com/blugelabs/bluge"
 )
 
 type lex struct {
@@ -17,7 +16,8 @@ type lex struct {
 	errs  []string
 
 	// search is the end result of the lexer parser and what is given to the user
-	search *bleve.SearchRequest
+	query  bsq.Query
+	fields []string
 
 	// Hold current value of strings and other multi-byte operators (and, or, not, ...)
 	lval      string
@@ -97,13 +97,13 @@ func (l *lex) Lex(lval *yySymType) int {
 // Add a field that will limit the amount of field returned
 // from our search.
 func (l *lex) addReturnField(field string) {
-	l.search.Fields = append(l.search.Fields, field)
+	l.fields = append(l.fields, field)
 }
 
 // Final method that is called by the lexer to set
 // the query that has been built.
 func (l *lex) setSearchQuery(q bsq.Query) {
-	l.search.Query = q
+	l.query = q
 }
 
 func (l *lex) eatString() string {
@@ -267,7 +267,7 @@ func (l *lex) makeRangeQuery(min string, max string) *bsq.NumericRangeQuery {
 		fmax = l.strToFloat64(max)
 	}
 
-	query := bsq.NewNumericRangeQuery(&fmin, &fmax)
+	query := bsq.NewNumericRangeQuery(fmin, fmax)
 
 	return query
 }

@@ -1,10 +1,10 @@
 <h1 align="center">Lily Query Language</h1>
 
-<p align="center">A Solr like query language for the bleve index (beta)</p>
+<p align="center">A Solr like query language for the bluge index (beta)</p>
 
 <br/>
 
-Lily Query Language (LQL) for short is used to build a bleve search result. It's
+Lily Query Language (LQL) for short is used to build a bluge search result. It's
 somewhat modeled after the Solr query language but is currently much more simple.
 In addition to building a query the language also lets you limit the result set.
 
