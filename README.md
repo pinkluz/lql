@@ -1,5 +1,7 @@
 <h1 align="center">Lily Query Language</h1>
 
+<p align="center">If you are looking for the bleve version look in bleve branch</p>
+
 <p align="center">A Solr like query language for the bluge index (beta)</p>
 
 <br/>
