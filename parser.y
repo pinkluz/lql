@@ -21,15 +21,16 @@ func logDebugGrammar(msg interface{}) {
 %}
 
 %union{
-	str string
+	num   float64
+	str   string
 	query bsq.Query
 }
 
 // multi byte tokens
-%token tOR tAND tRETURNS tGREATERTHAN tLESSTHAN
+%token tOR tAND tRETURNS tGREATERTHAN tLESSTHAN tNUMBER tSTRING
 
 // single byte tokens
-%token tSTRING tEQUAL tEXCLAMATION tLBRACKET tRBRACKET
+%token tEQUAL tEXCLAMATION tLBRACKET tRBRACKET tASTERISK
 %token tTILDE  tCOMMA tLSQUAREBRACKET tRSQUAREBRACKET
 
 // Tokens only used internally and not in the grammar def
@@ -42,9 +43,11 @@ func logDebugGrammar(msg interface{}) {
 %left tAND
 %left tLBRACKET tRBRACKET
 
-%type <str>      tSTRING
-%type <query>    lql
-%type <query>    searchParts
+%type <num>    tNUMBER
+%type <str>    tSTRING
+%type <str>    tASTERISK
+%type <query>  lql
+%type <query>  searchParts
 
 %start main
 
@@ -140,7 +143,19 @@ tSTRING tEQUAL tSTRING {
 	key := $1
 	value := $3
 
-	query := bsq.NewRegexpQuery(value)
+	query := bsq.NewMatchQuery(value)
+	query.SetField(key)
+
+	$$ = query
+}
+|
+tSTRING tEQUAL tNUMBER {
+	// k=1
+	logDebugGrammar("tSTRING tEQUAL tNUMBER")
+	key := $1
+	value := $3
+
+	query := bsq.NewNumericRangeInclusiveQuery(value, value, true, true)
 	query.SetField(key)
 
 	$$ = query
@@ -160,78 +175,122 @@ tSTRING tEXCLAMATION tEQUAL tSTRING {
 	$$ = query
 }
 |
-tSTRING tEQUAL tLSQUAREBRACKET tSTRING tCOMMA tSTRING tRSQUAREBRACKET {
+tSTRING tEXCLAMATION tEQUAL tNUMBER {
+	// k!=1
+	logDebugGrammar("tSTRING tEXCLAMATION tEQUAL tNUMBER")
+	key := $1
+	value := $4
+
+	match := bsq.NewNumericRangeInclusiveQuery(value, value, true, true)
+	match.SetField(key)
+	query := bsq.NewBooleanQuery()
+	query.AddMustNot(match)
+
+	$$ = query
+}
+|
+tSTRING tEQUAL tLSQUAREBRACKET tNUMBER tCOMMA tNUMBER tRSQUAREBRACKET {
 	// k=[v1,v2]
-	logDebugGrammar("tSTRING tEQUAL tLSQUAREBRACKET tSTRING tCOMMA tSTRING tRSQUAREBRACKET")
+	logDebugGrammar("tSTRING tEQUAL tLSQUAREBRACKET tNUMBER tCOMMA tNUMBER tRSQUAREBRACKET")
 	key := $1
 	min := $4
 	max := $6
 
 	// Read comment about func for more info
-	query := yylex.(*lex).makeRangeQuery(min, max)
+	query := bsq.NewNumericRangeQuery(min, max)
 	query.SetField(key)
 
 	$$ = query
 }
 |
-tSTRING tGREATERTHAN tSTRING {
+tSTRING tEQUAL tLSQUAREBRACKET tASTERISK tCOMMA tNUMBER tRSQUAREBRACKET {
+	// k=[*,v2]
+	logDebugGrammar("tSTRING tEQUAL tLSQUAREBRACKET tASTERISK tCOMMA tNUMBER tRSQUAREBRACKET")
+	key := $1
+	max := $6
+
+	// Read comment about func for more info
+	query := bsq.NewNumericRangeQuery(0.0, max)
+	query.SetField(key)
+
+	$$ = query
+}
+|
+tSTRING tEQUAL tLSQUAREBRACKET tNUMBER tCOMMA tASTERISK tRSQUAREBRACKET {
+	// k=[v1,*]
+	logDebugGrammar("tSTRING tEQUAL tLSQUAREBRACKET tNUMBER tCOMMA tASTERISK tRSQUAREBRACKET")
+	key := $1
+	min := $4
+
+	// Read comment about func for more info
+	query := bsq.NewNumericRangeQuery(min, math.MaxFloat64)
+	query.SetField(key)
+
+	$$ = query
+}
+|
+tSTRING tEQUAL tLSQUAREBRACKET tASTERISK tCOMMA tASTERISK tRSQUAREBRACKET {
+	// k=[*,*]
+	logDebugGrammar("tSTRING tEQUAL tLSQUAREBRACKET tASTERISK tCOMMA tASTERISK tRSQUAREBRACKET")
+	key := $1
+
+	// Read comment about func for more info
+	query := bsq.NewNumericRangeQuery(0.0, math.MaxFloat64)
+	query.SetField(key)
+
+	$$ = query
+}
+|
+tSTRING tGREATERTHAN tNUMBER {
 	// k>v
-	logDebugGrammar("tSTRING tGREATERTHAN tSTRING")
+	logDebugGrammar("tSTRING tGREATERTHAN tNUMBER")
 	key := $1
 	value := $3
 	setInclusiveRangeQuery := false
 
-	fval := yylex.(*lex).strToFloat64(value)
-
-	query := bsq.NewNumericRangeInclusiveQuery(fval, math.MaxFloat64,
+	query := bsq.NewNumericRangeInclusiveQuery(value, math.MaxFloat64,
 		setInclusiveRangeQuery, setInclusiveRangeQuery)
 	query.SetField(key)
 
 	$$ = query
 }
 |
-tSTRING tLESSTHAN tSTRING {
+tSTRING tLESSTHAN tNUMBER {
 	// k<v
-	logDebugGrammar("tSTRING tLESSTHAN tSTRING")
+	logDebugGrammar("tSTRING tLESSTHAN tNUMBER")
 	key := $1
 	value := $3
 	setInclusiveRangeQuery := false
 
-	fval := yylex.(*lex).strToFloat64(value)
-
-	query := bsq.NewNumericRangeInclusiveQuery(0.0, fval,
+	query := bsq.NewNumericRangeInclusiveQuery(0.0, value,
 		setInclusiveRangeQuery, setInclusiveRangeQuery)
 	query.SetField(key)
 
 	$$ = query
 }
 |
-tSTRING tGREATERTHAN tEQUAL tSTRING {
+tSTRING tGREATERTHAN tEQUAL tNUMBER {
 	// k>=v
-	logDebugGrammar("tSTRING tGREATERTHAN tEQUAL tSTRING")
+	logDebugGrammar("tSTRING tGREATERTHAN tEQUAL tNUMBER")
 	key := $1
 	value := $4
 	setInclusiveRangeQuery := true
 
-	fval := yylex.(*lex).strToFloat64(value)
-
-	query := bsq.NewNumericRangeInclusiveQuery(fval, math.MaxFloat64,
+	query := bsq.NewNumericRangeInclusiveQuery(value, math.MaxFloat64,
 		setInclusiveRangeQuery, setInclusiveRangeQuery)
 	query.SetField(key)
 
 	$$ = query
 }
 |
-tSTRING tLESSTHAN tEQUAL tSTRING {
+tSTRING tLESSTHAN tEQUAL tNUMBER {
 	// k<=v
-	logDebugGrammar("tSTRING tLESSTHAN tEQUAL tSTRING")
+	logDebugGrammar("tSTRING tLESSTHAN tEQUAL tNUMBER")
 	key := $1
 	value := $4
 	setInclusiveRangeQuery := true
 
-	fval := yylex.(*lex).strToFloat64(value)
-
-	query := bsq.NewNumericRangeInclusiveQuery(0.0, fval,
+	query := bsq.NewNumericRangeInclusiveQuery(0.0, value,
 		setInclusiveRangeQuery, setInclusiveRangeQuery)
 	query.SetField(key)
 

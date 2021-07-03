@@ -243,7 +243,7 @@ func TestQueryResults(t *testing.T) {
 		},
 		// Test regex query
 		{
-			input: []byte("name=~u.*"),
+			input: []byte("name=~\"u.*\""),
 			documents: []string{
 				"u1",
 				"u2",
@@ -276,6 +276,31 @@ func TestQueryResults(t *testing.T) {
 		{
 			input:       []byte("range=[r,k]"),
 			shouldError: true,
+		},
+		{
+			// Verify that the lexer can tell the difference between a number and a string
+			input: []byte("range=1"),
+			documents: []string{
+				"u1",
+			},
+		},
+		{
+			// Verify that the lexer can tell the difference between a float with point and a string
+			input: []byte("range=1.0"),
+			documents: []string{
+				"u1",
+			},
+		},
+		{
+			// This is not a valid decimal and should do a string match and find nothing
+			input:     []byte("range=1.0.0"),
+			documents: []string{},
+		},
+		{
+			// Since range is a numeric field and putting a field in double quotes forces
+			// it to search for a string value only this should fail.
+			input:     []byte("range=\"1\""),
+			documents: []string{},
 		},
 	}
 

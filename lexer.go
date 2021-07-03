@@ -3,7 +3,6 @@ package lql
 import (
 	"bytes"
 	"io"
-	"math"
 	"strconv"
 	"strings"
 
@@ -83,15 +82,31 @@ func (l *lex) Lex(lval *yySymType) int {
 		return rtoken
 	}
 
-	// Set the left val for the parser to use
-	lval.str = retStr
+	// Check if the string should be converted to a number before being passed back
+	// something in a quote is always a string
+	var retToken int
+	if l.inQuote {
+		// Set the left val for the parser to use
+		lval.str = retStr
+		retToken = tSTRING
+	} else {
+		num, err := l.isStringValidNumber(retStr)
+		if err != nil {
+			lval.str = retStr
+			retToken = tSTRING
+		} else {
+			lval.num = num
+			retToken = tNUMBER
+		}
+	}
 
-	// Clear everything for next Lex call
+	// Clear everything for next Lex call and if it's a tNUMBER or tSTRING just
+	// return tSTRING for now. This should be cleaned up.
 	l.lastToken = tSTRING
 	l.inQuote = false
 	l.inEscape = false
 
-	return tSTRING
+	return retToken
 }
 
 // Add a field that will limit the amount of field returned
@@ -218,6 +233,8 @@ func (l *lex) byteToToken(b byte) int {
 	switch b {
 	case '~':
 		return tTILDE
+	case '*':
+		return tASTERISK
 	case '>':
 		return tGREATERTHAN
 	case '<':
@@ -249,34 +266,17 @@ func (l *lex) Error(s string) {
 	l.errs = append(l.errs, s)
 }
 
-// handle building a range query since we just take a tSTRING tCOMMA tSTRING
-// for the value to keep it simple. We verify here that tSTRING is a valid
-// float or is * which means 0 for min or max float for max.
-func (l *lex) makeRangeQuery(min string, max string) *bsq.NumericRangeQuery {
-	var fmin float64
-	if min == "*" {
-		fmin = 0
-	} else {
-		fmin = l.strToFloat64(min)
+func (l *lex) isStringValidNumber(val string) (float64, error) {
+	// Special case to support decimals that use a comma which is common
+	// in many places.
+	if strings.Count(val, ",") == 1 {
+		val = strings.ReplaceAll(val, ",", ".")
 	}
 
-	var fmax float64
-	if max == "*" {
-		fmax = math.MaxFloat64
-	} else {
-		fmax = l.strToFloat64(max)
-	}
-
-	query := bsq.NewNumericRangeQuery(fmin, fmax)
-
-	return query
-}
-
-func (l *lex) strToFloat64(val string) float64 {
 	lval, err := strconv.ParseFloat(val, 64)
 	if err != nil {
-		l.errs = append(l.errs, err.Error())
+		return 0, err
 	}
 
-	return lval
+	return lval, nil
 }

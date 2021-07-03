@@ -22,6 +22,7 @@ func logDebugGrammar(msg interface{}) {
 
 type yySymType struct {
 	yys   int
+	num   float64
 	str   string
 	query bsq.Query
 }
@@ -31,18 +32,20 @@ const tAND = 57347
 const tRETURNS = 57348
 const tGREATERTHAN = 57349
 const tLESSTHAN = 57350
-const tSTRING = 57351
-const tEQUAL = 57352
-const tEXCLAMATION = 57353
-const tLBRACKET = 57354
-const tRBRACKET = 57355
-const tTILDE = 57356
-const tCOMMA = 57357
-const tLSQUAREBRACKET = 57358
-const tRSQUAREBRACKET = 57359
-const tWHITESPACE = 57360
-const tBACKSLASH = 57361
-const tDOUBLEQUOTE = 57362
+const tNUMBER = 57351
+const tSTRING = 57352
+const tEQUAL = 57353
+const tEXCLAMATION = 57354
+const tLBRACKET = 57355
+const tRBRACKET = 57356
+const tASTERISK = 57357
+const tTILDE = 57358
+const tCOMMA = 57359
+const tLSQUAREBRACKET = 57360
+const tRSQUAREBRACKET = 57361
+const tWHITESPACE = 57362
+const tBACKSLASH = 57363
+const tDOUBLEQUOTE = 57364
 
 var yyToknames = [...]string{
 	"$end",
@@ -53,11 +56,13 @@ var yyToknames = [...]string{
 	"tRETURNS",
 	"tGREATERTHAN",
 	"tLESSTHAN",
+	"tNUMBER",
 	"tSTRING",
 	"tEQUAL",
 	"tEXCLAMATION",
 	"tLBRACKET",
 	"tRBRACKET",
+	"tASTERISK",
 	"tTILDE",
 	"tCOMMA",
 	"tLSQUAREBRACKET",
@@ -66,7 +71,6 @@ var yyToknames = [...]string{
 	"tBACKSLASH",
 	"tDOUBLEQUOTE",
 }
-
 var yyStatenames = [...]string{}
 
 const yyEofCode = 1
@@ -81,63 +85,70 @@ var yyExca = [...]int{
 
 const yyPrivate = 57344
 
-const yyLast = 45
+const yyLast = 55
 
 var yyAct = [...]int{
-	14, 20, 41, 38, 39, 29, 22, 23, 21, 29,
-	40, 24, 7, 8, 36, 15, 35, 30, 16, 12,
-	13, 19, 10, 11, 5, 27, 28, 4, 25, 26,
-	37, 2, 34, 33, 32, 31, 9, 8, 1, 17,
-	18, 7, 8, 6, 3,
-}
 
+	14, 21, 20, 51, 50, 49, 48, 43, 23, 41,
+	22, 42, 30, 30, 24, 46, 44, 31, 32, 25,
+	15, 47, 45, 16, 33, 7, 8, 36, 35, 12,
+	13, 40, 39, 10, 11, 19, 5, 2, 28, 4,
+	29, 26, 9, 27, 37, 17, 18, 34, 38, 7,
+	8, 6, 8, 1, 3,
+}
 var yyPact = [...]int{
-	15, -1000, 37, -1000, 15, 12, 6, 15, 15, 8,
-	-8, -3, 19, 16, -6, -1000, 6, 32, -1000, -1000,
-	-1000, 26, 25, 24, 23, -1000, 7, -1000, 5, 6,
-	-10, -11, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 1,
-	-15, -1000,
-}
 
+	26, -1000, 45, -1000, 26, 22, 10, 26, 26, 21,
+	-8, 3, 32, 29, -4, -1000, 10, 47, -1000, -1000,
+	-1000, -1000, 9, 37, 18, 34, -1000, 39, -1000, 23,
+	10, -5, -6, -10, -1000, -1000, -1000, -1000, -1000, -1000,
+	-1000, -1000, 7, 6, -13, -14, -15, -16, -1000, -1000,
+	-1000, -1000,
+}
 var yyPgo = [...]int{
-	0, 44, 31, 38, 0,
-}
 
+	0, 54, 37, 53, 0,
+}
 var yyR1 = [...]int{
+
 	0, 3, 3, 4, 4, 4, 2, 2, 2, 2,
-	1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1,
 }
-
 var yyR2 = [...]int{
+
 	0, 1, 3, 1, 3, 3, 1, 3, 3, 3,
-	3, 4, 7, 3, 3, 4, 4, 4, 4,
+	3, 3, 4, 4, 7, 7, 7, 7, 3, 3,
+	4, 4, 4, 4,
 }
-
 var yyChk = [...]int{
-	-1000, -3, -2, -1, 12, 9, 6, 4, 5, -2,
-	10, 11, 7, 8, -4, 9, 12, -2, -2, 13,
-	9, 16, 14, 10, 14, 9, 10, 9, 10, 15,
-	-4, 9, 9, 9, 9, 9, 9, -4, 13, 15,
-	9, 17,
-}
 
+	-1000, -3, -2, -1, 13, 10, 6, 4, 5, -2,
+	11, 12, 7, 8, -4, 10, 13, -2, -2, 14,
+	10, 9, 18, 16, 11, 16, 9, 11, 9, 11,
+	17, -4, 9, 15, 10, 10, 9, 10, 9, 9,
+	-4, 14, 17, 17, 9, 15, 9, 15, 19, 19,
+	19, 19,
+}
 var yyDef = [...]int{
+
 	0, -2, 1, 6, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 2, 3, 0, 7, 8, 9,
-	10, 0, 0, 0, 0, 13, 0, 14, 0, 0,
-	0, 0, 17, 11, 18, 15, 16, 4, 5, 0,
-	0, 12,
+	10, 11, 0, 0, 0, 0, 18, 0, 19, 0,
+	0, 0, 0, 0, 22, 12, 13, 23, 20, 21,
+	4, 5, 0, 0, 0, 0, 0, 0, 14, 16,
+	15, 17,
 }
-
 var yyTok1 = [...]int{
+
 	1,
 }
-
 var yyTok2 = [...]int{
-	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-	12, 13, 14, 15, 16, 17, 18, 19, 20,
-}
 
+	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+	22,
+}
 var yyTok3 = [...]int{
 	0,
 }
@@ -566,12 +577,25 @@ yydefault:
 			key := yyDollar[1].str
 			value := yyDollar[3].str
 
-			query := bsq.NewRegexpQuery(value)
+			query := bsq.NewMatchQuery(value)
 			query.SetField(key)
 
 			yyVAL.query = query
 		}
 	case 11:
+		yyDollar = yyS[yypt-3 : yypt+1]
+		{
+			// k=1
+			logDebugGrammar("tSTRING tEQUAL tNUMBER")
+			key := yyDollar[1].str
+			value := yyDollar[3].num
+
+			query := bsq.NewNumericRangeInclusiveQuery(value, value, true, true)
+			query.SetField(key)
+
+			yyVAL.query = query
+		}
+	case 12:
 		yyDollar = yyS[yypt-4 : yypt+1]
 		{
 			// k!=v
@@ -586,90 +610,138 @@ yydefault:
 
 			yyVAL.query = query
 		}
-	case 12:
-		yyDollar = yyS[yypt-7 : yypt+1]
-		{
-			// k=[v1,v2]
-			logDebugGrammar("tSTRING tEQUAL tLSQUAREBRACKET tSTRING tCOMMA tSTRING tRSQUAREBRACKET")
-			key := yyDollar[1].str
-			min := yyDollar[4].str
-			max := yyDollar[6].str
-
-			// Read comment about func for more info
-			query := yylex.(*lex).makeRangeQuery(min, max)
-			query.SetField(key)
-
-			yyVAL.query = query
-		}
 	case 13:
-		yyDollar = yyS[yypt-3 : yypt+1]
+		yyDollar = yyS[yypt-4 : yypt+1]
 		{
-			// k>v
-			logDebugGrammar("tSTRING tGREATERTHAN tSTRING")
+			// k!=1
+			logDebugGrammar("tSTRING tEXCLAMATION tEQUAL tNUMBER")
 			key := yyDollar[1].str
-			value := yyDollar[3].str
-			setInclusiveRangeQuery := false
+			value := yyDollar[4].num
 
-			fval := yylex.(*lex).strToFloat64(value)
-
-			query := bsq.NewNumericRangeInclusiveQuery(fval, math.MaxFloat64,
-				setInclusiveRangeQuery, setInclusiveRangeQuery)
-			query.SetField(key)
+			match := bsq.NewNumericRangeInclusiveQuery(value, value, true, true)
+			match.SetField(key)
+			query := bsq.NewBooleanQuery()
+			query.AddMustNot(match)
 
 			yyVAL.query = query
 		}
 	case 14:
-		yyDollar = yyS[yypt-3 : yypt+1]
+		yyDollar = yyS[yypt-7 : yypt+1]
 		{
-			// k<v
-			logDebugGrammar("tSTRING tLESSTHAN tSTRING")
+			// k=[v1,v2]
+			logDebugGrammar("tSTRING tEQUAL tLSQUAREBRACKET tNUMBER tCOMMA tNUMBER tRSQUAREBRACKET")
 			key := yyDollar[1].str
-			value := yyDollar[3].str
-			setInclusiveRangeQuery := false
+			min := yyDollar[4].num
+			max := yyDollar[6].num
 
-			fval := yylex.(*lex).strToFloat64(value)
-
-			query := bsq.NewNumericRangeInclusiveQuery(0.0, fval,
-				setInclusiveRangeQuery, setInclusiveRangeQuery)
+			// Read comment about func for more info
+			query := bsq.NewNumericRangeQuery(min, max)
 			query.SetField(key)
 
 			yyVAL.query = query
 		}
 	case 15:
-		yyDollar = yyS[yypt-4 : yypt+1]
+		yyDollar = yyS[yypt-7 : yypt+1]
 		{
-			// k>=v
-			logDebugGrammar("tSTRING tGREATERTHAN tEQUAL tSTRING")
+			// k=[*,v2]
+			logDebugGrammar("tSTRING tEQUAL tLSQUAREBRACKET tASTERISK tCOMMA tNUMBER tRSQUAREBRACKET")
 			key := yyDollar[1].str
-			value := yyDollar[4].str
-			setInclusiveRangeQuery := true
+			max := yyDollar[6].num
 
-			fval := yylex.(*lex).strToFloat64(value)
-
-			query := bsq.NewNumericRangeInclusiveQuery(fval, math.MaxFloat64,
-				setInclusiveRangeQuery, setInclusiveRangeQuery)
+			// Read comment about func for more info
+			query := bsq.NewNumericRangeQuery(0.0, max)
 			query.SetField(key)
 
 			yyVAL.query = query
 		}
 	case 16:
-		yyDollar = yyS[yypt-4 : yypt+1]
+		yyDollar = yyS[yypt-7 : yypt+1]
 		{
-			// k<=v
-			logDebugGrammar("tSTRING tLESSTHAN tEQUAL tSTRING")
+			// k=[v1,*]
+			logDebugGrammar("tSTRING tEQUAL tLSQUAREBRACKET tNUMBER tCOMMA tASTERISK tRSQUAREBRACKET")
 			key := yyDollar[1].str
-			value := yyDollar[4].str
-			setInclusiveRangeQuery := true
+			min := yyDollar[4].num
 
-			fval := yylex.(*lex).strToFloat64(value)
-
-			query := bsq.NewNumericRangeInclusiveQuery(0.0, fval,
-				setInclusiveRangeQuery, setInclusiveRangeQuery)
+			// Read comment about func for more info
+			query := bsq.NewNumericRangeQuery(min, math.MaxFloat64)
 			query.SetField(key)
 
 			yyVAL.query = query
 		}
 	case 17:
+		yyDollar = yyS[yypt-7 : yypt+1]
+		{
+			// k=[*,*]
+			logDebugGrammar("tSTRING tEQUAL tLSQUAREBRACKET tASTERISK tCOMMA tASTERISK tRSQUAREBRACKET")
+			key := yyDollar[1].str
+
+			// Read comment about func for more info
+			query := bsq.NewNumericRangeQuery(0.0, math.MaxFloat64)
+			query.SetField(key)
+
+			yyVAL.query = query
+		}
+	case 18:
+		yyDollar = yyS[yypt-3 : yypt+1]
+		{
+			// k>v
+			logDebugGrammar("tSTRING tGREATERTHAN tNUMBER")
+			key := yyDollar[1].str
+			value := yyDollar[3].num
+			setInclusiveRangeQuery := false
+
+			query := bsq.NewNumericRangeInclusiveQuery(value, math.MaxFloat64,
+				setInclusiveRangeQuery, setInclusiveRangeQuery)
+			query.SetField(key)
+
+			yyVAL.query = query
+		}
+	case 19:
+		yyDollar = yyS[yypt-3 : yypt+1]
+		{
+			// k<v
+			logDebugGrammar("tSTRING tLESSTHAN tNUMBER")
+			key := yyDollar[1].str
+			value := yyDollar[3].num
+			setInclusiveRangeQuery := false
+
+			query := bsq.NewNumericRangeInclusiveQuery(0.0, value,
+				setInclusiveRangeQuery, setInclusiveRangeQuery)
+			query.SetField(key)
+
+			yyVAL.query = query
+		}
+	case 20:
+		yyDollar = yyS[yypt-4 : yypt+1]
+		{
+			// k>=v
+			logDebugGrammar("tSTRING tGREATERTHAN tEQUAL tNUMBER")
+			key := yyDollar[1].str
+			value := yyDollar[4].num
+			setInclusiveRangeQuery := true
+
+			query := bsq.NewNumericRangeInclusiveQuery(value, math.MaxFloat64,
+				setInclusiveRangeQuery, setInclusiveRangeQuery)
+			query.SetField(key)
+
+			yyVAL.query = query
+		}
+	case 21:
+		yyDollar = yyS[yypt-4 : yypt+1]
+		{
+			// k<=v
+			logDebugGrammar("tSTRING tLESSTHAN tEQUAL tNUMBER")
+			key := yyDollar[1].str
+			value := yyDollar[4].num
+			setInclusiveRangeQuery := true
+
+			query := bsq.NewNumericRangeInclusiveQuery(0.0, value,
+				setInclusiveRangeQuery, setInclusiveRangeQuery)
+			query.SetField(key)
+
+			yyVAL.query = query
+		}
+	case 22:
 		yyDollar = yyS[yypt-4 : yypt+1]
 		{
 			// k=~v
@@ -682,7 +754,7 @@ yydefault:
 
 			yyVAL.query = query
 		}
-	case 18:
+	case 23:
 		yyDollar = yyS[yypt-4 : yypt+1]
 		{
 			// k!~v

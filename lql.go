@@ -10,7 +10,7 @@ import (
 
 // Parse the passed in query
 func Parse(query []byte) (bluge.Query, []string, error) {
-	if query == nil || len(query) == 0 {
+	if len(query) == 0 {
 		return nil, nil, &ParseNOP{}
 	}
 
