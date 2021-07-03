@@ -4,7 +4,7 @@
 
 <br/>
 
-Lily Query Language (LQL) for short is used to build a bluge search result. It's
+Lily Query Language (LQL) for short is used to build a [bluge][1] search result. It's
 somewhat modeled after the Solr query language but is currently much more simple.
 In addition to building a query the language also lets you limit the result set.
 
@@ -86,3 +86,5 @@ Before putting up a chanage against this make sure to run the following.
 ```
 go generate ./... && go test -v ./...
 ```
+
+[1]: https://github.com/blugelabs/bluge
